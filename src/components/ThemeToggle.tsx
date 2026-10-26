@@ -51,12 +51,12 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({
   const options: { value: Theme; label: string; icon: React.ReactNode }[] = [
     {
       value: 'light',
-      label: 'Daylight',
+      label: 'Light Mode',
       icon: <Sun className="w-3.5 h-3.5" />,
     },
     {
       value: 'dark',
-      label: 'Evening',
+      label: 'Dark Mode',
       icon: <Moon className="w-3.5 h-3.5" />,
     },
     {
@@ -81,11 +81,10 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({
             role="radio"
             aria-checked={isSelected}
             onClick={() => setTheme(opt.value)}
-            className={`h-full px-2.5 inline-flex items-center gap-1.5 rounded-md text-xs font-medium transition-all cursor-pointer ${
-              isSelected
+            className={`h-full px-2.5 inline-flex items-center gap-1.5 rounded-md text-xs font-medium transition-all cursor-pointer ${isSelected
                 ? 'bg-card text-foreground shadow-xs border border-border/80 font-semibold text-solar'
                 : 'text-muted-foreground hover:text-foreground'
-            }`}
+              }`}
             title={`Switch to ${opt.label} mode`}
           >
             {opt.icon}
