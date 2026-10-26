@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { X, FolderOpen, Trash2, ArrowRight, Plus, Calendar, User, Zap } from 'lucide-react';
+import { X, FolderOpen, Trash2, ArrowRight, Plus, Calendar, User } from 'lucide-react';
 import { SavedProject } from '../types/solar';
 
 interface SavedProjectsModalProps {
@@ -24,48 +24,50 @@ export const SavedProjectsModal: React.FC<SavedProjectsModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fade-in">
-      <div className="relative w-full max-w-2xl bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden text-white">
-        
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-background/80 backdrop-blur-sm">
+      <div className="relative w-full max-w-2xl bg-card border border-border rounded-xl shadow-2xl overflow-hidden text-foreground">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800 bg-slate-900/50">
+        <div className="flex items-center justify-between px-5 py-3.5 border-b border-border bg-card">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20">
-              <FolderOpen className="w-5 h-5 stroke-[2.5]" />
+            <div className="p-2 rounded-lg bg-muted border border-border text-solar">
+              <FolderOpen className="w-4 h-4 stroke-[2.25]" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-white">Saved Site Audits</h3>
-              <p className="text-xs text-slate-400">Open, review, or delete past client setups</p>
+              <h3 className="text-sm font-bold text-foreground">Saved Site Audits</h3>
+              <p className="text-xs text-muted-foreground">Restore client audit profiles or remove obsolete snapshots.</p>
             </div>
           </div>
           <button
+            type="button"
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+            className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
+            aria-label="Close saved audits"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
-        {/* Action Toolbar */}
-        <div className="p-4 bg-slate-950/60 border-b border-slate-800 flex items-center justify-between">
-          <span className="text-xs text-slate-400 font-mono">
-            {projects.length} {projects.length === 1 ? 'audit' : 'audits'} saved
+        {/* Toolbar */}
+        <div className="px-5 py-2.5 bg-muted/40 border-b border-border flex items-center justify-between">
+          <span className="text-xs text-muted-foreground font-mono">
+            {projects.length} {projects.length === 1 ? 'audit' : 'audits'} stored locally
           </span>
 
           <button
+            type="button"
             onClick={() => {
               onSaveCurrentAsNew();
               onClose();
             }}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-xl bg-amber-500 text-slate-950 hover:bg-amber-400 transition-all shadow-md shadow-amber-500/20"
+            className="h-8 inline-flex items-center gap-1.5 px-3 rounded-lg text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary-hover transition-colors cursor-pointer shadow-xs"
           >
-            <Plus className="w-4 h-4 stroke-[3]" />
-            Save Current Site Audit
+            <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+            <span>Save Current Workspace</span>
           </button>
         </div>
 
-        {/* List of projects */}
-        <div className="p-6 max-h-[60vh] overflow-y-auto space-y-3">
+        {/* Project List */}
+        <div className="p-5 max-h-[60vh] overflow-y-auto space-y-2.5">
           {projects.length > 0 ? (
             projects.map((p) => {
               const activeCount = p.appliances.filter((a) => a.quantity > 0).length;
@@ -77,45 +79,48 @@ export const SavedProjectsModal: React.FC<SavedProjectsModalProps> = ({
               return (
                 <div
                   key={p.id}
-                  className="group rounded-xl p-4 bg-slate-950/80 border border-slate-800 hover:border-amber-500/50 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                  className="rounded-lg p-3.5 bg-muted/30 border border-border hover:border-border/80 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-3"
                 >
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                      <User className="w-4 h-4 text-amber-400" />
-                      <h4 className="text-sm font-bold text-white">
-                        {p.clientName || 'Unnamed Site Audit'}
+                      <User className="w-3.5 h-3.5 text-muted-foreground" />
+                      <h4 className="text-sm font-semibold text-foreground">
+                        {p.clientName || 'Untitled Site Audit'}
                       </h4>
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-3 text-xs text-slate-400 font-mono">
-                      <span className="flex items-center gap-1">
-                        <Calendar className="w-3 h-3 text-slate-500" />
+                    <div className="flex flex-wrap items-center gap-2.5 text-xs text-muted-foreground font-mono">
+                      <span className="flex items-center gap-1 text-muted-foreground">
+                        <Calendar className="w-3 h-3" />
                         {new Date(p.updatedAt).toLocaleDateString()}
                       </span>
-                      <span>•</span>
-                      <span>{activeCount} load items</span>
-                      <span>•</span>
-                      <span className="text-amber-300 font-semibold">{totalWatts.toLocaleString()} W</span>
+                      <span className="text-border">•</span>
+                      <span>{activeCount} active items</span>
+                      <span className="text-border">•</span>
+                      <span className="text-solar font-semibold">{totalWatts.toLocaleString()} W</span>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-2 justify-end">
                     <button
+                      type="button"
                       onClick={() => onDeleteProject(p.id)}
-                      className="p-2 text-slate-400 hover:text-rose-400 hover:bg-rose-950/40 rounded-lg transition-colors"
-                      title="Delete snapshot"
+                      className="p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded transition-colors cursor-pointer"
+                      title="Delete saved audit"
+                      aria-label="Delete audit"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
 
                     <button
+                      type="button"
                       onClick={() => {
                         onLoadProject(p);
                         onClose();
                       }}
-                      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 border border-slate-700 transition-all"
+                      className="h-8 inline-flex items-center gap-1.5 px-3 rounded-lg text-xs font-semibold bg-secondary text-secondary-foreground hover:bg-secondary/80 border border-border transition-colors cursor-pointer"
                     >
-                      <span>Load Workspace</span>
+                      <span>Restore Audit</span>
                       <ArrowRight className="w-3.5 h-3.5" />
                     </button>
                   </div>
@@ -123,21 +128,22 @@ export const SavedProjectsModal: React.FC<SavedProjectsModalProps> = ({
               );
             })
           ) : (
-            <div className="text-center py-12 text-slate-400">
-              <FolderOpen className="w-10 h-10 text-slate-600 mx-auto mb-2 opacity-50" />
-              <p className="text-sm font-medium text-slate-300">No saved projects yet</p>
-              <p className="text-xs text-slate-500 mt-1">
-                Save client load audits to quickly restore them for future site visits.
+            <div className="text-center py-10 text-muted-foreground">
+              <FolderOpen className="w-8 h-8 mx-auto mb-2 opacity-40 text-muted-foreground" />
+              <p className="text-xs font-medium text-foreground">No saved site audits</p>
+              <p className="text-[11px] text-muted-foreground mt-0.5">
+                Save an audit snapshot to reload it during follow-up client site visits.
               </p>
             </div>
           )}
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-3 bg-slate-900/80 border-t border-slate-800 text-right">
+        <div className="px-5 py-3 bg-card border-t border-border text-right">
           <button
+            type="button"
             onClick={onClose}
-            className="px-4 py-1.5 text-xs font-semibold rounded-xl text-slate-400 hover:text-white"
+            className="h-8 px-3 rounded-lg text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
           >
             Close
           </button>
