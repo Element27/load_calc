@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { X, Sliders, RotateCcw, Check, Sun, Battery, Zap } from 'lucide-react';
+import { X, SlidersHorizontal, RotateCcw, Check, Sun, Battery, Zap } from 'lucide-react';
 import { SystemSettings } from '../types/solar';
 import { DEFAULT_SETTINGS } from '../constants/defaults';
 
@@ -37,41 +37,43 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fade-in">
-      <div className="relative w-full max-w-xl bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden text-white">
-        
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-background/80 backdrop-blur-sm">
+      <div className="relative w-full max-w-xl bg-card border border-border rounded-xl shadow-2xl overflow-hidden text-foreground">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800 bg-slate-900/50">
+        <div className="flex items-center justify-between px-5 py-3.5 border-b border-border bg-card">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20">
-              <Sliders className="w-5 h-5 stroke-[2.5]" />
+            <div className="p-2 rounded-lg bg-muted border border-border text-solar">
+              <SlidersHorizontal className="w-4 h-4 stroke-[2.25]" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-white">Sizing Rules & Engineering Constants</h3>
-              <p className="text-xs text-slate-400">Adjust peak sun hours, battery depth-of-discharge, and safety margins</p>
+              <h3 className="text-sm font-bold text-foreground">Engineering Sizing Constants</h3>
+              <p className="text-xs text-muted-foreground">
+                Calibrate regional insolation, system derating, and battery boundaries.
+              </p>
             </div>
           </div>
           <button
+            type="button"
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+            className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
+            aria-label="Close settings"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Form Body */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-5">
-          
+        <form onSubmit={handleSubmit} className="p-5 space-y-4">
           {/* Solar PV Parameters */}
-          <div className="space-y-3">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-sky-400 flex items-center gap-1.5 border-b border-slate-800 pb-1">
-              <Sun className="w-4 h-4" />
-              Solar Panel & Sunlight Settings
+          <div className="space-y-2.5">
+            <h4 className="text-[11px] font-mono font-semibold uppercase tracking-wider text-solar flex items-center gap-1.5 border-b border-border pb-1">
+              <Sun className="w-3.5 h-3.5" />
+              Photovoltaic & Solar Insolation
             </h4>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
-                <label className="block text-xs font-medium text-slate-300 mb-1">
+                <label className="block text-xs font-medium text-foreground mb-1">
                   Peak Sun Hours (PSH)
                 </label>
                 <input
@@ -81,13 +83,13 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   max={12}
                   value={form.peakSunHours}
                   onChange={(e) => handleChange('peakSunHours', parseFloat(e.target.value) || 4.5)}
-                  className="w-full bg-slate-950 border border-slate-800 focus:border-amber-500 rounded-xl px-3 py-1.5 text-xs font-bold text-sky-300 focus:outline-none"
+                  className="w-full h-9 bg-background border border-input focus:border-solar rounded-lg px-3 text-xs font-mono font-bold text-foreground focus:outline-none transition-colors"
                 />
-                <span className="text-[10px] text-slate-400">Default: 4.5 hrs/day</span>
+                <span className="text-[10px] text-muted-foreground font-mono mt-0.5 block">Standard: 4.5 hrs/day</span>
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-slate-300 mb-1">
+                <label className="block text-xs font-medium text-foreground mb-1">
                   System Derate Factor
                 </label>
                 <input
@@ -97,14 +99,14 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   max={1.0}
                   value={form.systemDerate}
                   onChange={(e) => handleChange('systemDerate', parseFloat(e.target.value) || 0.75)}
-                  className="w-full bg-slate-950 border border-slate-800 focus:border-amber-500 rounded-xl px-3 py-1.5 text-xs font-bold text-sky-300 focus:outline-none"
+                  className="w-full h-9 bg-background border border-input focus:border-solar rounded-lg px-3 text-xs font-mono font-bold text-foreground focus:outline-none transition-colors"
                 />
-                <span className="text-[10px] text-slate-400">Default: 0.75 (75%)</span>
+                <span className="text-[10px] text-muted-foreground font-mono mt-0.5 block">Standard: 0.75 (75%)</span>
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-slate-300 mb-1">
-                  Standard Panel Rating
+                <label className="block text-xs font-medium text-foreground mb-1">
+                  Module Rating (W)
                 </label>
                 <input
                   type="number"
@@ -113,24 +115,24 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   max={700}
                   value={form.panelWattage}
                   onChange={(e) => handleChange('panelWattage', parseInt(e.target.value, 10) || 450)}
-                  className="w-full bg-slate-950 border border-slate-800 focus:border-amber-500 rounded-xl px-3 py-1.5 text-xs font-bold text-sky-300 focus:outline-none"
+                  className="w-full h-9 bg-background border border-input focus:border-solar rounded-lg px-3 text-xs font-mono font-bold text-foreground focus:outline-none transition-colors"
                 />
-                <span className="text-[10px] text-slate-400">Default: 450 W</span>
+                <span className="text-[10px] text-muted-foreground font-mono mt-0.5 block">Standard: 450 W</span>
               </div>
             </div>
           </div>
 
           {/* Inverter Sizing Parameters */}
-          <div className="space-y-3">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-amber-400 flex items-center gap-1.5 border-b border-slate-800 pb-1">
-              <Zap className="w-4 h-4" />
-              Inverter & Electrical Parameters
+          <div className="space-y-2.5">
+            <h4 className="text-[11px] font-mono font-semibold uppercase tracking-wider text-solar flex items-center gap-1.5 border-b border-border pb-1">
+              <Zap className="w-3.5 h-3.5" />
+              Inverter & Continuous Headroom
             </h4>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-medium text-slate-300 mb-1">
-                  Inverter Headroom Multiplier
+                <label className="block text-xs font-medium text-foreground mb-1">
+                  Inverter Headroom Margin
                 </label>
                 <input
                   type="number"
@@ -139,96 +141,104 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   max={2.0}
                   value={form.inverterHeadroom}
                   onChange={(e) => handleChange('inverterHeadroom', parseFloat(e.target.value) || 1.25)}
-                  className="w-full bg-slate-950 border border-slate-800 focus:border-amber-500 rounded-xl px-3 py-1.5 text-xs font-bold text-amber-300 focus:outline-none"
+                  className="w-full h-9 bg-background border border-input focus:border-solar rounded-lg px-3 text-xs font-mono font-bold text-foreground focus:outline-none transition-colors"
                 />
-                <span className="text-[10px] text-slate-400">Default: 1.25 (25% Headroom)</span>
+                <span className="text-[10px] text-muted-foreground font-mono mt-0.5 block">
+                  1.25 = +25% continuous safety headroom
+                </span>
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-slate-300 mb-1">
-                  Power Factor (PF)
+                <label className="block text-xs font-medium text-foreground mb-1">
+                  Inverter Power Factor (PF)
                 </label>
                 <input
                   type="number"
                   step="0.05"
-                  min={0.5}
+                  min={0.6}
                   max={1.0}
                   value={form.inverterPowerFactor}
                   onChange={(e) => handleChange('inverterPowerFactor', parseFloat(e.target.value) || 0.8)}
-                  className="w-full bg-slate-950 border border-slate-800 focus:border-amber-500 rounded-xl px-3 py-1.5 text-xs font-bold text-amber-300 focus:outline-none"
+                  className="w-full h-9 bg-background border border-input focus:border-solar rounded-lg px-3 text-xs font-mono font-bold text-foreground focus:outline-none transition-colors"
                 />
-                <span className="text-[10px] text-slate-400">Default: 0.8 PF</span>
+                <span className="text-[10px] text-muted-foreground font-mono mt-0.5 block">
+                  Standard: 0.80 inductive power factor
+                </span>
               </div>
             </div>
           </div>
 
-          {/* Battery Bank Parameters */}
-          <div className="space-y-3">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1.5 border-b border-slate-800 pb-1">
-              <Battery className="w-4 h-4" />
-              LiFePO4 Lithium Battery Storage
+          {/* Battery Storage Parameters */}
+          <div className="space-y-2.5">
+            <h4 className="text-[11px] font-mono font-semibold uppercase tracking-wider text-storage flex items-center gap-1.5 border-b border-border pb-1">
+              <Battery className="w-3.5 h-3.5" />
+              LiFePO4 Storage Boundaries
             </h4>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-medium text-slate-300 mb-1">
-                  Depth of Discharge (DoD)
+                <label className="block text-xs font-medium text-foreground mb-1">
+                  Maximum Depth-of-Discharge (DoD)
                 </label>
                 <input
                   type="number"
                   step="0.05"
                   min={0.5}
-                  max={1.0}
+                  max={0.95}
                   value={form.batteryDoD}
                   onChange={(e) => handleChange('batteryDoD', parseFloat(e.target.value) || 0.85)}
-                  className="w-full bg-slate-950 border border-slate-800 focus:border-amber-500 rounded-xl px-3 py-1.5 text-xs font-bold text-emerald-300 focus:outline-none"
+                  className="w-full h-9 bg-background border border-input focus:border-solar rounded-lg px-3 text-xs font-mono font-bold text-foreground focus:outline-none transition-colors"
                 />
-                <span className="text-[10px] text-slate-400">Default: 0.85 (85% DoD)</span>
+                <span className="text-[10px] text-muted-foreground font-mono mt-0.5 block">
+                  Standard: 0.85 (85% usable capacity for cell preservation)
+                </span>
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-slate-300 mb-1">
-                  Round-Trip Efficiency
+                <label className="block text-xs font-medium text-foreground mb-1">
+                  Roundtrip Storage Efficiency
                 </label>
                 <input
                   type="number"
-                  step="0.05"
+                  step="0.01"
                   min={0.7}
-                  max={1.0}
+                  max={0.98}
                   value={form.batteryEfficiency}
-                  onChange={(e) => handleChange('batteryEfficiency', parseFloat(e.target.value) || 0.9)}
-                  className="w-full bg-slate-950 border border-slate-800 focus:border-amber-500 rounded-xl px-3 py-1.5 text-xs font-bold text-emerald-300 focus:outline-none"
+                  onChange={(e) => handleChange('batteryEfficiency', parseFloat(e.target.value) || 0.90)}
+                  className="w-full h-9 bg-background border border-input focus:border-solar rounded-lg px-3 text-xs font-mono font-bold text-foreground focus:outline-none transition-colors"
                 />
-                <span className="text-[10px] text-slate-400">Default: 0.90 (90% Eff.)</span>
+                <span className="text-[10px] text-muted-foreground font-mono mt-0.5 block">
+                  Standard: 0.90 (90% LiFePO4 roundtrip efficiency)
+                </span>
               </div>
             </div>
           </div>
 
-          {/* Buttons */}
-          <div className="flex items-center justify-between pt-4 border-t border-slate-800">
+          {/* Footer Actions */}
+          <div className="flex items-center justify-between pt-4 border-t border-border">
             <button
               type="button"
               onClick={handleReset}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-400 hover:text-slate-200"
+              className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
             >
               <RotateCcw className="w-3.5 h-3.5" />
-              Reset Defaults
+              <span>Reset to Defaults</span>
             </button>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2 text-xs font-semibold rounded-xl text-slate-300 hover:bg-slate-800 transition-colors"
+                className="h-8 px-3 rounded-lg text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="inline-flex items-center gap-1.5 px-5 py-2 text-xs font-bold rounded-xl bg-amber-500 text-slate-950 hover:bg-amber-400 transition-all shadow-md shadow-amber-500/20"
+                className="h-8 inline-flex items-center gap-1.5 px-4 rounded-lg text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary-hover transition-colors cursor-pointer shadow-xs"
               >
-                <Check className="w-4 h-4 stroke-[3]" />
-                Apply Changes
+                <Check className="w-3.5 h-3.5 stroke-[2.5]" />
+                <span>Save Constants</span>
               </button>
             </div>
           </div>

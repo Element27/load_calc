@@ -3,17 +3,14 @@
 import React from 'react';
 import {
   Sun,
-  Zap,
   RotateCcw,
-  Sliders,
+  SlidersHorizontal,
   FolderOpen,
   Plus,
-  Share2,
-  FileText,
-  Moon,
-  Sparkles,
+  FileSpreadsheet,
 } from 'lucide-react';
 import { PRESET_PROFILES } from '../constants/defaults';
+import { ThemeToggle } from './ThemeToggle';
 
 interface HeaderProps {
   clientName: string;
@@ -24,8 +21,6 @@ interface HeaderProps {
   onOpenProjects: () => void;
   onOpenProposal: () => void;
   onApplyPreset: (presetId: string) => void;
-  isDarkMode: boolean;
-  setIsDarkMode: (val: boolean | ((prev: boolean) => boolean)) => void;
   activePreset: string | null;
 }
 
@@ -38,83 +33,76 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenProjects,
   onOpenProposal,
   onApplyPreset,
-  isDarkMode,
-  setIsDarkMode,
   activePreset,
 }) => {
   return (
-    <header className="sticky top-0 z-30 border-b border-amber-500/20 bg-slate-900/95 backdrop-blur-md text-white shadow-xl transition-colors">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          
-          {/* Logo & Application Title */}
+    <header className="sticky top-0 z-30 border-b border-border bg-card/90 backdrop-blur-md text-foreground transition-colors duration-150 shadow-xs">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3.5">
+          {/* Brand & Console Status */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="relative flex items-center justify-center w-11 h-11 rounded-xl bg-gradient-to-tr from-amber-500 via-orange-500 to-yellow-400 text-slate-950 shadow-lg shadow-amber-500/20 ring-2 ring-amber-400/30">
-                <Sun className="w-6 h-6 animate-pulse" />
-                <Zap className="w-3.5 h-3.5 absolute -bottom-0.5 -right-0.5 text-amber-950 fill-amber-300" />
+              <div
+                className="flex items-center justify-center w-9 h-9 rounded-lg border border-border bg-muted text-solar transition-colors"
+                aria-hidden="true"
+              >
+                <Sun className="w-5 h-5 stroke-[2.25]" />
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h1 className="text-xl font-bold tracking-tight bg-gradient-to-r from-amber-400 via-orange-300 to-yellow-200 bg-clip-text text-transparent">
-                    SolarSpec
-                  </h1>
-                  <span className="text-[10px] uppercase font-semibold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                    Field calculator
+                  <span className="text-base font-bold tracking-tight text-foreground">SolarSpec</span>
+                  <span className="text-[11px] font-mono font-medium px-2 py-0.5 rounded-md border border-border bg-muted text-muted-foreground">
+                    Load Audit Console
                   </span>
                 </div>
-                <p className="text-xs text-slate-400">
-                  Solar load calculator for inverters, batteries, and panels
+                <p className="text-xs text-muted-foreground">
+                  Photovoltaic, battery storage, and inverter capacity sizing
                 </p>
               </div>
             </div>
 
-            {/* Mobile quick actions */}
-            <div className="flex items-center gap-1.5 md:hidden">
+            {/* Mobile quick toggles */}
+            <div className="flex items-center gap-1.5 lg:hidden">
+              <ThemeToggle variant="compact" />
               <button
-                onClick={() => setIsDarkMode((prev) => !prev)}
-                className="p-2 rounded-lg bg-slate-800 text-slate-300 hover:text-amber-400 hover:bg-slate-700"
-                title="Toggle Theme"
-              >
-                {isDarkMode ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4" />}
-              </button>
-              <button
+                type="button"
                 onClick={onOpenSettings}
-                className="p-2 rounded-lg bg-slate-800 text-slate-300 hover:text-amber-400 hover:bg-slate-700"
-                title="Sizing parameters (sun hours, derate)"
+                className="p-2 rounded-lg border border-border bg-card text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
+                title="Sizing parameters (sun hours, derate, headroom)"
+                aria-label="Open engineering settings"
               >
-                <Sliders className="w-4 h-4" />
+                <SlidersHorizontal className="w-4 h-4" />
               </button>
             </div>
           </div>
 
-          {/* Client Input & Actions */}
-          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-            {/* Client Name Input */}
-            <div className="relative flex-1 min-w-[180px] max-w-xs">
+          {/* Site Metadata & Engineering Actions */}
+          <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
+            {/* Client / Site Name */}
+            <div className="relative flex-1 min-w-[170px] max-w-xs">
               <input
                 type="text"
                 value={clientName}
                 onChange={(e) => setClientName(e.target.value)}
-                placeholder="Client or site address..."
-                className="w-full bg-slate-800/90 border border-slate-700 focus:border-amber-500 rounded-lg px-3 py-1.5 text-xs text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-amber-500/50 transition-all"
+                placeholder="Site address or client identifier"
+                className="w-full h-9 rounded-lg px-3 text-xs border border-input bg-background text-foreground placeholder:text-muted-foreground focus:border-solar focus:ring-1 focus:ring-solar/20 focus:outline-none transition-colors"
               />
             </div>
 
-            {/* Quick Presets Dropdown */}
-            <div className="relative min-w-[130px]">
+            {/* Presets Menu */}
+            <div className="relative min-w-[140px]">
               <select
+                aria-label="Load preset load schedule"
+                value={activePreset || ''}
                 onChange={(e) => {
                   if (e.target.value) {
                     onApplyPreset(e.target.value);
-                    e.target.value = '';
                   }
                 }}
-                className="w-full bg-slate-800 border border-slate-700 hover:border-amber-500 text-slate-200 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-amber-500 cursor-pointer"
-                defaultValue=""
+                className="w-full h-9 rounded-lg px-2.5 text-xs font-medium border border-input bg-background text-foreground hover:border-border focus:border-solar focus:outline-none cursor-pointer transition-colors"
               >
                 <option value="" disabled>
-                  Sample property presets...
+                  Load profile template...
                 </option>
                 {PRESET_PROFILES.map((preset) => (
                   <option key={preset.id} value={preset.id}>
@@ -124,63 +112,64 @@ export const Header: React.FC<HeaderProps> = ({
               </select>
             </div>
 
-            {/* Quick Add Custom Button */}
+            {/* Add Custom Load */}
             <button
+              type="button"
               onClick={onOpenAddCustom}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-amber-500 text-slate-950 hover:bg-amber-400 active:scale-95 transition-all shadow-md shadow-amber-500/20"
+              className="h-9 inline-flex items-center gap-1.5 px-3 rounded-lg text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary-hover active:scale-[0.98] transition-all cursor-pointer shadow-xs"
             >
-              <Plus className="w-3.5 h-3.5 stroke-[3]" />
-              <span className="hidden sm:inline">Add Custom</span>
+              <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+              <span>Add Custom Load</span>
             </button>
 
-            {/* Full Field Proposal Modal Button */}
+            {/* Proposal / Report Generator */}
             <button
+              type="button"
               onClick={onOpenProposal}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-800 text-amber-300 border border-amber-500/30 hover:bg-slate-700 hover:border-amber-400 transition-all"
-              title="View site proposal & PDF summary"
+              className="h-9 inline-flex items-center gap-1.5 px-3 rounded-lg text-xs font-medium border border-border bg-card text-foreground hover:bg-muted transition-colors cursor-pointer"
+              title="Generate printable specification and client proposal"
             >
-              <FileText className="w-3.5 h-3.5" />
-              <span className="hidden md:inline">Site Proposal</span>
+              <FileSpreadsheet className="w-3.5 h-3.5 text-solar" />
+              <span className="hidden sm:inline">Proposal Report</span>
             </button>
 
-            {/* Saved Projects Button */}
+            {/* Saved Projects */}
             <button
+              type="button"
               onClick={onOpenProjects}
-              className="hidden lg:inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-800 text-slate-200 border border-slate-700 hover:bg-slate-700 transition-all"
-              title="View saved site audits"
+              className="h-9 hidden md:inline-flex items-center gap-1.5 px-3 rounded-lg text-xs font-medium border border-border bg-card text-foreground hover:bg-muted transition-colors cursor-pointer"
+              title="View saved site load snapshots"
             >
-              <FolderOpen className="w-3.5 h-3.5 text-slate-400" />
+              <FolderOpen className="w-3.5 h-3.5 text-muted-foreground" />
               <span>Saved Audits</span>
             </button>
 
-            {/* Advanced Settings Button */}
+            {/* Engineering Sizing Settings */}
             <button
+              type="button"
               onClick={onOpenSettings}
-              className="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-800 text-slate-200 border border-slate-700 hover:bg-slate-700 transition-all"
-              title="Sizing parameters (sun hours, derate)"
+              className="h-9 hidden lg:inline-flex items-center justify-center px-2.5 rounded-lg border border-border bg-card text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
+              title="Engineering constants (PSH, Derate, Inverter Headroom, DoD)"
+              aria-label="Engineering Settings"
             >
-              <Sliders className="w-3.5 h-3.5 text-slate-400" />
+              <SlidersHorizontal className="w-3.5 h-3.5" />
             </button>
 
-            {/* Dark / Light Toggle */}
-            <button
-              onClick={() => setIsDarkMode((prev) => !prev)}
-              className="hidden md:inline-flex items-center justify-center p-2 rounded-lg bg-slate-800 text-slate-300 hover:text-amber-400 hover:bg-slate-700 border border-slate-700 transition-all"
-              title="Toggle Light/Dark Theme"
-            >
-              {isDarkMode ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4" />}
-            </button>
+            {/* Accessible Segmented Theme Toggle */}
+            <div className="hidden lg:inline-flex">
+              <ThemeToggle variant="segmented" />
+            </div>
 
-            {/* Reset All Button */}
+            {/* Reset All */}
             <button
+              type="button"
               onClick={onResetAll}
-              className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-lg text-rose-300 bg-rose-950/40 border border-rose-800/40 hover:bg-rose-900/60 hover:text-rose-200 transition-all"
-              title="Reset all entries to default"
+              className="h-9 inline-flex items-center gap-1.5 px-2.5 rounded-lg text-xs font-medium border border-border text-muted-foreground hover:text-destructive hover:border-destructive/30 hover:bg-destructive/10 transition-colors cursor-pointer"
+              title="Reset all quantities, runtimes, and client info"
             >
               <RotateCcw className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">Reset</span>
             </button>
-
           </div>
         </div>
       </div>

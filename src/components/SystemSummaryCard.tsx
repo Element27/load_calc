@@ -8,15 +8,11 @@ import {
   Activity,
   Copy,
   Check,
-  FileText,
+  FileSpreadsheet,
   BookmarkPlus,
-  Flame,
   ShieldCheck,
-  AlertTriangle,
-  Info,
-  Layers,
-  Clock,
-  Sparkles,
+  AlertCircle,
+  Cpu,
 } from 'lucide-react';
 import { CalculationResults, SystemSettings, Appliance } from '../types/solar';
 
@@ -27,7 +23,6 @@ interface SystemSummaryCardProps {
   clientName: string;
   onOpenProposal: () => void;
   onSaveSnapshot: () => void;
-  isDarkMode?: boolean;
 }
 
 export const SystemSummaryCard: React.FC<SystemSummaryCardProps> = ({
@@ -37,115 +32,107 @@ export const SystemSummaryCard: React.FC<SystemSummaryCardProps> = ({
   clientName,
   onOpenProposal,
   onSaveSnapshot,
-  isDarkMode = true,
 }) => {
   const [copied, setCopied] = useState(false);
 
   const activeAppliances = appliances.filter((a) => a.quantity > 0);
+  const hasLoad = results.totalRunningWatts > 0;
 
-  // Generate text quotation snippet for quick copy (WhatsApp / Email)
+  // Clean ASCII technical summary formatted for WhatsApp/Email
   const handleCopyQuote = () => {
-    const title = clientName ? `SOLAR SYSTEM SIZING FOR ${clientName.toUpperCase()}` : 'SOLAR SYSTEM SIZING SUMMARY';
-    
-    let text = `=====================================\n`;
-    text += `☀️ ${title}\n`;
-    text += `=====================================\n\n`;
-    
-    text += `📊 SITE LOAD SUMMARY:\n`;
-    text += `• Continuous Power: ${results.totalRunningWatts.toLocaleString()} W\n`;
-    text += `• Estimated Startup Surge: ${results.peakSurgeWatts.toLocaleString()} W\n`;
-    text += `• Daily Energy Demand: ${results.dailyEnergyKWh.toFixed(2)} kWh/day\n\n`;
+    const title = clientName
+      ? `SOLAR LOAD AUDIT & SPECIFICATION: ${clientName.toUpperCase()}`
+      : 'SOLAR LOAD AUDIT & SYSTEM SPECIFICATION';
 
-    text += `⚙️ RECOMMENDED EQUIPMENT:\n`;
-    text += `1️⃣ INVERTER: ${results.inverterLabel || 'None'}\n`;
-    text += `   - Raw Load Demand: ${results.rawInverterKVA.toFixed(2)} kVA (${settings.inverterHeadroom * 100 - 100}% continuous safety margin)\n`;
-    text += `2️⃣ BATTERY STORAGE (LiFePO4):\n`;
-    text += `   - Usable Storage Required: ${results.requiredBatteryKWh.toFixed(2)} kWh\n`;
-    text += `   - Recommended Bank: ${results.batteryConfigLabel} (${results.actualBatteryKWh.toFixed(2)} kWh total)\n`;
-    text += `3️⃣ SOLAR ARRAY:\n`;
-    text += `   - Array Size: ${results.rawPVArrayKWp.toFixed(2)} kWp\n`;
-    text += `   - Panels: ${results.panelCount}x ${settings.panelWattage}W modules (${results.actualPVKWp.toFixed(2)} kWp total)\n\n`;
+    let text = `--------------------------------------------------\n`;
+    text += `${title}\n`;
+    text += `Generated: ${new Date().toLocaleDateString()} | SolarSpec Console\n`;
+    text += `--------------------------------------------------\n\n`;
+
+    text += `1. ELECTRICAL LOAD PROFILE\n`;
+    text += `   - Continuous Demand: ${results.totalRunningWatts.toLocaleString()} W\n`;
+    text += `   - Peak Startup Surge: ${results.peakSurgeWatts.toLocaleString()} W\n`;
+    text += `   - Daily Energy Consumption: ${results.dailyEnergyKWh.toFixed(2)} kWh/day\n\n`;
+
+    text += `2. RECOMMENDED HARDWARE SIZING\n`;
+    text += `   - Inverter: ${results.inverterLabel || 'None'}\n`;
+    text += `     Raw demand: ${results.rawInverterKVA.toFixed(2)} kVA with ${(settings.inverterHeadroom * 100 - 100).toFixed(0)}% continuous margin\n`;
+    text += `   - Battery Bank (LiFePO4): ${results.batteryConfigLabel}\n`;
+    text += `     Total capacity: ${results.actualBatteryKWh.toFixed(2)} kWh (${results.requiredBatteryKWh.toFixed(2)} kWh usable @ ${(settings.batteryDoD * 100).toFixed(0)}% DoD)\n`;
+    text += `   - Photovoltaic Array: ${results.panelCount}x ${settings.panelWattage}W modules\n`;
+    text += `     Array rating: ${results.actualPVKWp.toFixed(2)} kWp (${results.dailyPVGenerationKWh.toFixed(2)} kWh/day est. @ ${settings.peakSunHours} PSH)\n`;
+    text += `   - Nominal DC System Voltage: ${results.recommendedDCVoltage} V\n\n`;
 
     if (activeAppliances.length > 0) {
-      text += `📋 APPLIANCE BREAKDOWN (${activeAppliances.length} items):\n`;
+      text += `3. AUDITED APPLIANCE SCHEDULE (${activeAppliances.length} items)\n`;
       activeAppliances.forEach((item) => {
         const itemWh = item.quantity * item.ratedWatts * item.hoursPerDay;
-        text += `• ${item.quantity}x ${item.name} (${item.ratedWatts}W) @ ${item.hoursPerDay}h/day = ${(itemWh / 1000).toFixed(2)} kWh/d\n`;
+        text += `   - ${item.quantity}x ${item.name} (${item.ratedWatts}W) @ ${item.hoursPerDay}h/d -> ${(itemWh / 1000).toFixed(2)} kWh/day\n`;
       });
       text += `\n`;
     }
 
-    text += `Calculated with SolarSpec`;
+    text += `Preliminary engineering sizing. Final wire sizing and OCPD to be verified on site.`;
 
     navigator.clipboard.writeText(text);
     setCopied(true);
-    setTimeout(() => setCopied(false), 2500);
+    setTimeout(() => setCopied(false), 2000);
   };
 
-  const hasLoad = results.totalRunningWatts > 0;
-
   return (
-    <div className="space-y-4">
-      
-      {/* Top Banner Card */}
-      <div className="relative overflow-hidden rounded-2xl p-5 bg-gradient-to-br from-slate-900 via-slate-900 to-slate-950 border border-amber-500/30 shadow-2xl backdrop-blur-md">
-        
-        {/* Glow background effects */}
-        <div className="absolute -top-24 -right-24 w-48 h-48 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
-
-        <div className="relative flex items-center justify-between pb-4 mb-4 border-b border-slate-800">
+    <div className="space-y-3.5">
+      {/* Engineering Spec Placard */}
+      <div className="rounded-xl p-4 sm:p-5 border border-border bg-card text-foreground transition-colors shadow-xs">
+        {/* Header */}
+        <div className="flex items-center justify-between pb-3.5 border-b border-border mb-4">
           <div>
             <div className="flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-amber-400" />
-              <h2 className="text-lg font-bold text-white tracking-wide">
-                Recommended equipment sizing
-              </h2>
+              <Cpu className="w-4 h-4 text-solar" />
+              <h2 className="text-sm font-bold tracking-tight text-foreground">System Specification Sheet</h2>
             </div>
-            <p className="text-xs text-slate-400 mt-0.5">
-              Hardware sizes based on continuous wattage, surge spikes, and battery reserve.
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Derived from active load audit, motor inrush margins, and battery reserves.
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div>
             {hasLoad ? (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-mono font-medium bg-solar/10 text-solar border border-solar/20">
                 <ShieldCheck className="w-3.5 h-3.5" />
-                Sizing calculated
+                Spec Computed
               </span>
             ) : (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-slate-800 text-slate-400 border border-slate-700">
-                <Info className="w-3.5 h-3.5" />
-                Add appliances to calculate
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-mono text-muted-foreground border border-border bg-muted">
+                <AlertCircle className="w-3.5 h-3.5" />
+                Awaiting Loads
               </span>
             )}
           </div>
         </div>
 
-        {/* 3 Main Specification Cards */}
-        <div className="space-y-3.5">
-          
-          {/* Card 1: Recommended Inverter */}
-          <div className="relative group rounded-xl p-4 bg-slate-950/80 border border-amber-500/40 hover:border-amber-400 transition-all shadow-md">
+        {/* 3 Core Hardware Placards */}
+        <div className="space-y-3">
+          {/* Inverter Sizing Placard */}
+          <div className="rounded-lg p-3.5 border border-border bg-muted/30 transition-colors">
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-center gap-3">
-                <div className="p-3 rounded-xl bg-gradient-to-tr from-amber-500 to-orange-500 text-slate-950 shadow-md shadow-amber-500/20">
-                  <Zap className="w-6 h-6 fill-current stroke-[2.5]" />
+                <div className="p-2 rounded-md border border-border bg-card text-solar shadow-xs">
+                  <Zap className="w-4 h-4 stroke-[2.25]" />
                 </div>
                 <div>
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-amber-400">
-                    Recommended Inverter
-                  </span>
-                  <div className="text-xl sm:text-2xl font-black text-white mt-0.5 tracking-tight">
+                  <div className="text-[10px] font-mono font-semibold uppercase tracking-wider text-muted-foreground">
+                    Inverter Sizing
+                  </div>
+                  <div className="text-lg font-bold tracking-tight text-foreground mt-0.5">
                     {hasLoad ? results.inverterLabel : '0 kVA (No active loads)'}
                   </div>
                 </div>
               </div>
 
               {hasLoad && (
-                <div className="text-right font-mono">
-                  <span className="text-xs text-slate-400 block">Raw kVA Req.</span>
-                  <span className="text-sm font-bold text-amber-300">
+                <div className="text-right font-mono text-xs">
+                  <span className="text-[10px] text-muted-foreground block uppercase">Raw Demand</span>
+                  <span className="font-semibold text-foreground">
                     {results.rawInverterKVA.toFixed(2)} kVA
                   </span>
                 </div>
@@ -153,20 +140,16 @@ export const SystemSummaryCard: React.FC<SystemSummaryCardProps> = ({
             </div>
 
             {hasLoad && (
-              <div className="mt-3 pt-3 border-t border-slate-800/80 grid grid-cols-2 gap-2 text-xs">
-                <div className="bg-slate-900/60 p-2 rounded-lg border border-slate-800">
-                  <span className="text-slate-400 text-[10px] uppercase font-mono block">
-                    Running Watts
-                  </span>
-                  <span className="text-sm font-bold text-slate-100">
+              <div className="mt-3 pt-2.5 border-t border-border grid grid-cols-2 gap-2 text-xs font-mono">
+                <div className="text-muted-foreground">
+                  <span className="text-[10px] text-muted-foreground block">Continuous Power</span>
+                  <span className="font-semibold text-foreground">
                     {results.totalRunningWatts.toLocaleString()} W
                   </span>
                 </div>
-                <div className="bg-slate-900/60 p-2 rounded-lg border border-slate-800">
-                  <span className="text-slate-400 text-[10px] uppercase font-mono block">
-                    Max Surge Watts
-                  </span>
-                  <span className="text-sm font-bold text-rose-400">
+                <div className="text-muted-foreground">
+                  <span className="text-[10px] text-muted-foreground block">Peak Inrush Surge</span>
+                  <span className="font-semibold text-foreground">
                     {results.peakSurgeWatts.toLocaleString()} W
                   </span>
                 </div>
@@ -174,27 +157,27 @@ export const SystemSummaryCard: React.FC<SystemSummaryCardProps> = ({
             )}
           </div>
 
-          {/* Card 2: Recommended Battery Bank */}
-          <div className="relative group rounded-xl p-4 bg-slate-950/80 border border-emerald-500/40 hover:border-emerald-400 transition-all shadow-md">
+          {/* Battery Bank Placard (Clean Grid / Storage Accent) */}
+          <div className="rounded-lg p-3.5 border border-storage/25 bg-storage/5 transition-colors">
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-center gap-3">
-                <div className="p-3 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 text-slate-950 shadow-md shadow-emerald-500/20">
-                  <BatteryCharging className="w-6 h-6 stroke-[2.5]" />
+                <div className="p-2 rounded-md border border-storage/30 bg-card text-storage shadow-xs">
+                  <BatteryCharging className="w-4 h-4 stroke-[2.25]" />
                 </div>
                 <div>
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-400">
-                    Battery Storage (LiFePO4)
-                  </span>
-                  <div className="text-lg sm:text-xl font-black text-white mt-0.5 tracking-tight">
+                  <div className="text-[10px] font-mono font-semibold uppercase tracking-wider text-storage/90">
+                    LiFePO4 Storage Bank
+                  </div>
+                  <div className="text-base font-bold tracking-tight text-foreground mt-0.5">
                     {hasLoad ? results.batteryConfigLabel : '0 modules (No active loads)'}
                   </div>
                 </div>
               </div>
 
               {hasLoad && (
-                <div className="text-right font-mono">
-                  <span className="text-xs text-slate-400 block">Total Storage</span>
-                  <span className="text-sm font-bold text-emerald-300">
+                <div className="text-right font-mono text-xs">
+                  <span className="text-[10px] text-storage/80 block uppercase">Installed Bank</span>
+                  <span className="font-semibold text-storage">
                     {results.actualBatteryKWh.toFixed(2)} kWh
                   </span>
                 </div>
@@ -202,149 +185,136 @@ export const SystemSummaryCard: React.FC<SystemSummaryCardProps> = ({
             </div>
 
             {hasLoad && (
-              <div className="mt-3 pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400 font-mono">
+              <div className="mt-3 pt-2.5 border-t border-storage/20 flex items-center justify-between text-xs font-mono text-muted-foreground">
                 <span>
-                  Req. Storage: <strong className="text-white">{results.requiredBatteryKWh.toFixed(2)} kWh</strong>
+                  Usable Required: <strong className="text-foreground">{results.requiredBatteryKWh.toFixed(2)} kWh</strong>
                 </span>
-                <span>
-                  Specs: {settings.batteryDoD * 100}% DoD | {settings.batteryEfficiency * 100}% Eff.
+                <span className="text-storage font-medium">
+                  {(settings.batteryDoD * 100).toFixed(0)}% DoD Limit
                 </span>
               </div>
             )}
           </div>
 
-          {/* Card 3: Recommended Solar Array */}
-          <div className="relative group rounded-xl p-4 bg-slate-950/80 border border-sky-500/40 hover:border-sky-400 transition-all shadow-md">
+          {/* Solar PV Array Placard */}
+          <div className="rounded-lg p-3.5 border border-border bg-muted/30 transition-colors">
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-center gap-3">
-                <div className="p-3 rounded-xl bg-gradient-to-tr from-sky-500 to-cyan-400 text-slate-950 shadow-md shadow-sky-500/20">
-                  <Sun className="w-6 h-6 stroke-[2.5]" />
+                <div className="p-2 rounded-md border border-border bg-card text-solar shadow-xs">
+                  <Sun className="w-4 h-4 stroke-[2.25]" />
                 </div>
                 <div>
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-sky-400">
-                    Solar Array (PV)
-                  </span>
-                  <div className="text-lg sm:text-xl font-black text-white mt-0.5 tracking-tight">
+                  <div className="text-[10px] font-mono font-semibold uppercase tracking-wider text-muted-foreground">
+                    Photovoltaic Array (PV)
+                  </div>
+                  <div className="text-base font-bold tracking-tight text-foreground mt-0.5">
                     {hasLoad
-                      ? `${results.panelCount}x ${settings.panelWattage}W Panels (${results.actualPVKWp.toFixed(2)} kWp)`
-                      : '0 panels (No active loads)'}
+                      ? `${results.panelCount}x ${settings.panelWattage}W Modules`
+                      : '0 modules (No active loads)'}
                   </div>
                 </div>
               </div>
 
               {hasLoad && (
-                <div className="text-right font-mono">
-                  <span className="text-xs text-slate-400 block">Required kWp</span>
-                  <span className="text-sm font-bold text-sky-300">
-                    {results.rawPVArrayKWp.toFixed(2)} kWp
+                <div className="text-right font-mono text-xs">
+                  <span className="text-[10px] text-muted-foreground block uppercase">Array Size</span>
+                  <span className="font-semibold text-foreground">
+                    {results.actualPVKWp.toFixed(2)} kWp
                   </span>
                 </div>
               )}
             </div>
 
             {hasLoad && (
-              <div className="mt-3 pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400 font-mono">
+              <div className="mt-3 pt-2.5 border-t border-border flex items-center justify-between text-xs font-mono text-muted-foreground">
                 <span>
-                  Est. Generation:{' '}
-                  <strong className="text-sky-300">
-                    {results.dailyPVGenerationKWh.toFixed(2)} kWh/day
-                  </strong>
+                  Est. Daily Yield: <strong className="text-foreground">{results.dailyPVGenerationKWh.toFixed(2)} kWh/day</strong>
                 </span>
-                <span>
-                  {settings.peakSunHours} PSH @ {settings.systemDerate * 100}% Derate
+                <span className="text-muted-foreground">
+                  {settings.peakSunHours} PSH
                 </span>
               </div>
             )}
           </div>
-
         </div>
 
-        {/* Diagnostic Breakdown Card */}
-        <div className="mt-4 pt-4 border-t border-slate-800 space-y-3">
+        {/* Load Telemetry Strip */}
+        <div className="mt-4 pt-3.5 border-t border-border space-y-3">
           <div className="flex items-center justify-between">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
-              <Activity className="w-4 h-4 text-amber-400" />
-              Site load totals
-            </h3>
-            <span className="text-[10px] font-mono text-slate-400">
-              Calculated live
+            <span className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
+              <Activity className="w-3.5 h-3.5 text-muted-foreground" />
+              Site Demand Telemetry
+            </span>
+            <span className="text-[11px] font-mono text-muted-foreground">
+              Live calculation
             </span>
           </div>
 
-          <div className="grid grid-cols-3 gap-2 text-center">
-            <div className="bg-slate-950/60 p-2.5 rounded-xl border border-slate-800">
-              <span className="text-[10px] text-slate-400 uppercase font-medium block">
-                Continuous load
-              </span>
-              <span className="text-base font-extrabold text-white font-mono mt-0.5 block">
-                {results.totalRunningWatts.toLocaleString()} <span className="text-xs text-amber-400">W</span>
-              </span>
+          <div className="grid grid-cols-3 gap-2 text-center font-mono">
+            <div className="p-2.5 rounded-lg border border-border bg-muted/50">
+              <div className="text-[10px] text-muted-foreground uppercase">Continuous</div>
+              <div className="text-sm font-bold text-foreground mt-0.5">
+                {results.totalRunningWatts.toLocaleString()} <span className="text-[10px] text-muted-foreground">W</span>
+              </div>
             </div>
 
-            <div className="bg-slate-950/60 p-2.5 rounded-xl border border-slate-800">
-              <span className="text-[10px] text-slate-400 uppercase font-medium block">
-                Peak motor surge
-              </span>
-              <span className="text-base font-extrabold text-rose-400 font-mono mt-0.5 block">
-                {results.peakSurgeWatts.toLocaleString()} <span className="text-xs">W</span>
-              </span>
+            <div className="p-2.5 rounded-lg border border-border bg-muted/50">
+              <div className="text-[10px] text-muted-foreground uppercase">Max Surge</div>
+              <div className="text-sm font-bold text-foreground mt-0.5">
+                {results.peakSurgeWatts.toLocaleString()} <span className="text-[10px] text-muted-foreground">W</span>
+              </div>
             </div>
 
-            <div className="bg-slate-950/60 p-2.5 rounded-xl border border-slate-800">
-              <span className="text-[10px] text-slate-400 uppercase font-medium block">
-                Daily energy demand
-              </span>
-              <span className="text-base font-extrabold text-emerald-400 font-mono mt-0.5 block">
-                {results.dailyEnergyKWh.toFixed(2)} <span className="text-xs">kWh</span>
-              </span>
+            <div className="p-2.5 rounded-lg border border-solar/20 bg-solar/10 text-solar">
+              <div className="text-[10px] text-solar/80 uppercase font-medium">Daily Demand</div>
+              <div className="text-sm font-bold text-solar mt-0.5">
+                {results.dailyEnergyKWh.toFixed(2)} <span className="text-[10px] text-solar/80">kWh</span>
+              </div>
             </div>
           </div>
 
-          {/* Surge details alert if any */}
+          {/* Surge details note */}
           {results.largestSurgeAppliance && results.largestSurgeAdder > 0 && (
-            <div className="flex items-center gap-2 p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-300">
-              <Flame className="w-4 h-4 text-amber-400 flex-shrink-0" />
-              <span>
-                Largest motor startup spike:{' '}
-                <strong>+{results.largestSurgeAdder}W</strong> from the{' '}
-                <strong className="text-white">{results.largestSurgeAppliance}</strong>.
-              </span>
+            <div className="p-2.5 rounded-lg text-xs font-mono border border-border bg-muted/40 text-muted-foreground">
+              Largest inductive surge: +{results.largestSurgeAdder}W from{' '}
+              <span className="font-semibold text-foreground">{results.largestSurgeAppliance}</span>
             </div>
           )}
         </div>
 
-        {/* Field Installer Action Toolbar */}
-        <div className="mt-5 pt-4 border-t border-slate-800 flex flex-wrap items-center justify-between gap-2">
-          
+        {/* Primary Field Technician Actions */}
+        <div className="mt-4 pt-3.5 border-t border-border flex flex-wrap items-center gap-2">
           <button
+            type="button"
             onClick={handleCopyQuote}
             disabled={!hasLoad}
-            className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-bold rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 disabled:opacity-40 transition-all active:scale-95"
+            className="flex-1 h-9 inline-flex items-center justify-center gap-1.5 px-3 rounded-lg text-xs font-medium border border-border bg-card text-foreground hover:bg-muted disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
           >
-            {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4 text-amber-400" />}
-            <span>{copied ? 'Copied to Clipboard' : 'Copy text quote'}</span>
+            {copied ? <Check className="w-3.5 h-3.5 text-solar" /> : <Copy className="w-3.5 h-3.5 text-muted-foreground" />}
+            <span>{copied ? 'Spec Copied' : 'Copy Spec Summary'}</span>
           </button>
 
           <button
+            type="button"
             onClick={onOpenProposal}
             disabled={!hasLoad}
-            className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-bold rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 disabled:opacity-40 transition-all shadow-md shadow-amber-500/20 active:scale-95"
+            className="flex-1 h-9 inline-flex items-center justify-center gap-1.5 px-3 rounded-lg text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary-hover disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer shadow-xs"
           >
-            <FileText className="w-4 h-4 stroke-[2.5]" />
-            <span>Site Proposal</span>
+            <FileSpreadsheet className="w-3.5 h-3.5" />
+            <span>Generate Proposal</span>
           </button>
 
           <button
+            type="button"
             onClick={onSaveSnapshot}
             disabled={!hasLoad}
-            className="inline-flex items-center justify-center p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 disabled:opacity-40 transition-all"
-            title="Save site audit"
+            className="h-9 px-2.5 inline-flex items-center justify-center rounded-lg border border-border bg-card text-muted-foreground hover:text-foreground hover:bg-muted disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
+            title="Save current site audit to local storage"
+            aria-label="Save site snapshot"
           >
-            <BookmarkPlus className="w-4 h-4 text-sky-400" />
+            <BookmarkPlus className="w-3.5 h-3.5" />
           </button>
-
         </div>
-
       </div>
     </div>
   );
